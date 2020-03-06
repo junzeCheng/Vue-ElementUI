@@ -3,7 +3,7 @@ import
 {Input,Form,FormItem,Button,Message,Container,
   Aside,Main,Header,Menu,Submenu,MenuItem,
   Breadcrumb,BreadcrumbItem,Card,Col,Row,Table,TableColumn,Switch,
-  Tooltip,Pagination,Dialog,MessageBox
+  Tooltip,Pagination,Dialog,MessageBox,Tag,Tree,Select,Option
 } from 'element-ui'
 
 Vue.use(Input)
@@ -28,6 +28,10 @@ Vue.use(Switch)
 Vue.use(Tooltip)
 Vue.use(Pagination)
 Vue.use(Dialog)
+Vue.use(Tag)
+Vue.use(Tree)
+Vue.use(Select)
+Vue.use(Option)
 
 
 
