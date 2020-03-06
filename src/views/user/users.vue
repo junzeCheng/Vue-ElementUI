@@ -34,7 +34,7 @@
         <el-table-column label="操作">
           <template v-slot="scope">
             <el-button type="primary" icon="el-icon-edit" size="mini" @click="showEditDialog(scope.row.id)"></el-button>
-            <el-button type="danger" icon="el-icon-delete" size="mini"></el-button>
+            <el-button type="danger" icon="el-icon-delete" size="mini" @click="deleteUserById(scope.row.id)"></el-button>
             <el-tooltip effect="dark" content="管理用户" placement="top" :enterable="false">
               <el-button type="warning" icon="el-icon-setting" size="mini"></el-button>
             </el-tooltip>
@@ -92,7 +92,7 @@
         </el-form>
          <span slot="footer" class="dialog-footer">
             <el-button @click="magDialogVisible = false">取 消</el-button>
-            <el-button type="primary">确 定</el-button>
+            <el-button type="primary" @click="editUser">确 定</el-button>
           </span>
       </el-dialog>
     </el-card>
@@ -235,6 +235,41 @@ export default {
      if(res.meta.status!=200) return this.$message.error("查询用户信息失败")
      this.magUserForm = res.data
      this.magDialogVisible = true
+    },
+    // 修改用户信息
+     editUser() {
+      this.$refs.magUserRef.validate( async valid => {
+        if (!valid) return;
+        const { data: res } = await this.$http.put("users/"+this.magUserForm.id,{
+         email: this.magUserForm.email,
+         mobile: this.magUserForm.mobile
+        });
+        if (res.meta.status != 200) {
+          return this.$message.error("修改用户信息失败");
+        }
+        this.$message.success("修改成功");
+        this.magDialogVisible = false
+        this.getUserList();
+      });
+    },
+    async deleteUserById(id){
+     const res = await this.$confirm('此操作将永久删除该用户, 是否继续?', '提示', {
+          confirmButtonText: '确定',
+          cancelButtonText: '取消',
+          type: 'warning'
+        }).catch(err=>err)
+        console.log(res)
+        if(res !== 'confirm'){
+          return this.$message.info("取消了删除")
+        }
+        const {data: result} = await this.$http.delete("users/"+id)
+        if(result.meta.status!=200){
+          this.$message.error("删除用户失败")
+        }else{
+           this.$message.success("删除用户失败")
+        }
+        this.queryInfo.pagenum = 1
+        this.getUserList()
     }
   }
 };
