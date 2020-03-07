@@ -14,3 +14,7 @@ html,body,#app{
 .el-pagination{
   margin-top: 15px;
 }
+.el-cascader__dropdown,.el-cascader-menu{
+  max-height:420px;
+  overflow: scroll;
+}
