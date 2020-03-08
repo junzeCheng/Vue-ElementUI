@@ -4,7 +4,7 @@ import
   Aside,Main,Header,Menu,Submenu,MenuItem,
   Breadcrumb,BreadcrumbItem,Card,Col,Row,Table,TableColumn,Switch,
   Tooltip,Pagination,Dialog,MessageBox,Tag,Tree,Select,Option,Cascader,
-  Alert,Tabs,TabPane
+  Alert,Tabs,TabPane,Step,Steps,Checkbox,CheckboxGroup,Upload
 } from 'element-ui'
 
 Vue.use(Input)
@@ -37,6 +37,11 @@ Vue.use(Cascader)
 Vue.use(Alert)
 Vue.use(Tabs)
 Vue.use(TabPane)
+Vue.use(Step)
+Vue.use(Steps)
+Vue.use(Checkbox)
+Vue.use(CheckboxGroup)
+Vue.use(Upload)
 
 
 
