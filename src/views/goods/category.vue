@@ -35,8 +35,8 @@
         </template>
         <!-- 操作 -->
         <template v-slot:opt="scoped">
-          <el-button type="primary" size="mini" icon="el-icon-edit">编辑</el-button>
-          <el-button type="danger" size="mini" icon="el-icon-delete">删除</el-button>
+          <el-button type="primary" size="mini" icon="el-icon-edit" @click="editCategory(scoped.row.cat_id)">编辑</el-button>
+          <el-button type="danger" size="mini" icon="el-icon-delete" @click="deleteCategory(scoped.row.cat_id)">删除</el-button>
         </template>
       </tree-table>
       <!-- 分页 -->
@@ -50,7 +50,12 @@
         :total="total"
       ></el-pagination>
       <!-- 添加分类对话框 -->
-      <el-dialog title="添加分类" :visible.sync="addCateDialogVisible" width="50%" @close="addCateDialogClose">
+      <el-dialog
+        title="添加分类"
+        :visible.sync="addCateDialogVisible"
+        width="50%"
+        @close="addCateDialogClose"
+      >
         <el-form
           :model="addCateForm"
           :rules="addCateRules"
@@ -75,6 +80,18 @@
         <span slot="footer" class="dialog-footer">
           <el-button @click="addCateDialogVisible = false">取 消</el-button>
           <el-button type="primary" @click="addNewCat">确 定</el-button>
+        </span>
+      </el-dialog>
+      <!-- 编辑分类对话框 -->
+      <el-dialog title="修改分类" :visible.sync="editRoleVisible" width="50%" @close="editDialogClose()">
+        <el-form :model="editRoleForm" :rules="editRoleRules" ref="editRoleRef" label-width="90px">
+          <el-form-item label="分类名称" prop="cat_name">
+            <el-input v-model="editRoleForm.cat_name"></el-input>
+          </el-form-item>
+        </el-form>
+        <span slot="footer" class="dialog-footer">
+          <el-button @click="editRoleVisible = false">取 消</el-button>
+          <el-button type="primary" @click="editRole">确 定</el-button>
         </span>
       </el-dialog>
     </el-card>
@@ -132,13 +149,21 @@ export default {
       },
       parentCateList: [],
       cascaderProps: {
-            expandTrigger: 'hover',
-            value: 'cat_id',
-            label: 'cat_name',
-            children: "children"
+        expandTrigger: "hover",
+        value: "cat_id",
+        label: "cat_name",
+        children: "children"
       },
       //选中的父级分类的数组
-      selectedKeys: []
+      selectedKeys: [],
+      // 编辑分类对话框
+      editRoleVisible: false,
+      editRoleForm: {},
+      editRoleRules:{
+        cat_name :
+        [{ required: true, message: "请输入分类名称", trigger: "blur" }]
+      }
+
     };
   },
   created() {
@@ -165,7 +190,7 @@ export default {
       this.getCateList();
     },
     addCate() {
-      this.getParentCateList()
+      this.getParentCateList();
       this.addCateDialogVisible = true;
     },
     //获取父级分类列表
@@ -179,37 +204,91 @@ export default {
       this.parentCateList = res.data;
     },
     //选择父级分类
-    parentCateChanged(){
-      console.log(this.selectedKeys)
-      if(this.selectedKeys.length > 0){
+    parentCateChanged() {
+      console.log(this.selectedKeys);
+      if (this.selectedKeys.length > 0) {
         //父级分类ID
-        this.addCateForm.cat_pid = this.selectedKeys[this.selectedKeys.length-1]
-        this.addCateForm.cat_level = this.selectedKeys.length
-        return
-      }else{
-        this.addCateForm.cat_pid = 0
-        this.addCateForm.cat_level = 0
+        this.addCateForm.cat_pid = this.selectedKeys[
+          this.selectedKeys.length - 1
+        ];
+        this.addCateForm.cat_level = this.selectedKeys.length;
+        return;
+      } else {
+        this.addCateForm.cat_pid = 0;
+        this.addCateForm.cat_level = 0;
       }
     },
     //点击确定按钮
-    addNewCat(){
-      this.$refs.addCateRef.validate(async valid=>{
-        if(!valid) return
-        const {data: res} = await this.$http.post("categories",this.addCateForm)
-        if(res.meta.status!==201){
-          return this.$message.error("添加分类失败")
+    addNewCat() {
+      this.$refs.addCateRef.validate(async valid => {
+        if (!valid) return;
+        const { data: res } = await this.$http.post(
+          "categories",
+          this.addCateForm
+        );
+        if (res.meta.status !== 201) {
+          return this.$message.error("添加分类失败");
         }
-        this.$message.success("添加分类成功")
-        this.getCateList()
-        this.addCateDialogVisible = false
-      })
+        this.$message.success("添加分类成功");
+        this.getCateList();
+        this.addCateDialogVisible = false;
+      });
     },
     //退出清空表单
-    addCateDialogClose(){
-      this.$refs.addCateRef.resetFields()
-      this.selectedKeys = []
-      this.addCateForm.cat_pid = 0
-      this.addCateForm.cat_level = 0
+    addCateDialogClose() {
+      this.$refs.addCateRef.resetFields();
+      this.selectedKeys = [];
+      this.addCateForm.cat_pid = 0;
+      this.addCateForm.cat_level = 0;
+    },
+    //编辑分类
+    async editCategory(id){
+      const { data: res } = await this.$http.get("categories/" + id);
+      if (res.meta.status != 200)
+        return this.$message.error("查询分类信息失败");
+      this.editRoleForm = res.data;
+      this.editRoleVisible = true;
+    },
+    // 编辑分类确认
+    editRole(){
+       this.$refs.editRoleRef.validate(async valid => {
+        if (!valid) return;
+        const { data: res } = await this.$http.put(
+          "categories/" + this.editRoleForm.cat_id,
+          {
+            cat_name: this.editRoleForm.cat_name
+          }
+        );
+        if (res.meta.status != 200) {
+          return this.$message.error("修改分类信息失败");
+        }
+        this.$message.success("修改成功");
+        this.editRoleVisible = false;
+        this.getCateList();
+      });
+    },
+    async deleteCategory(id){
+      const res = await this.$confirm(
+        "此操作将永久删除该分类, 是否继续?",
+        "提示",
+        {
+          confirmButtonText: "确定",
+          cancelButtonText: "取消",
+          type: "warning"
+        }
+      ).catch(err => err);
+      if (res !== "confirm") {
+        return this.$message.info("取消了删除");
+      }
+      const { data: result } = await this.$http.delete("categories/" + id);
+      if (result.meta.status != 200) {
+        return this.$message.error("删除用户失败");
+      }
+      this.$message.success("删除用户成功");
+      this.getCateList();
+    },
+    editDialogClose(){
+      this.$refs.editRoleRef.resetFields();
     }
   }
 };
@@ -219,8 +298,8 @@ export default {
 .tree-table {
   margin-top: 15px;
 }
-.el-cascader{
-height:300px;
-width:300px;
+.el-cascader {
+  height: 300px;
+  width: 300px;
 }
 </style>
